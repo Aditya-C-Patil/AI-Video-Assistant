@@ -1,6 +1,7 @@
 # ⚡ NEXUS AI // Intelligent Video Meeting Assistant & RAG Platform
 
 NEXUS AI is an intelligent video assistant that transforms raw video and audio streams into actionable intelligence. By combining high-speed Groq LPU transcription (whisper-large-v3), ChromaDB vector indexing, and Mistral AI reasoning, it seamlessly translates Hindi/Hinglish audio into English, extracts key decisions and action items, and enables real-time, grounded RAG chat over long-form meeting recordings and YouTube videos.
+
 ---
 
 ## 📑 Architectural Flow
@@ -30,6 +31,7 @@ NEXUS AI is an intelligent video assistant that transforms raw video and audio s
 [ Streamlit Multi-Stage UI (app.py) / CLI (main.py) ]
 ```
 ---
+
 ## 📂 Project Structure & Module Breakdown
 
 ```text
@@ -51,4 +53,4 @@ AI Video Assistant/
 ├── .env.example                    # Example to setup API keys & environment secrets
 └── .gitignore                      # Git exclusion rules
 ```
-
+---
