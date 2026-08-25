@@ -1,0 +1,22 @@
+[
+  {
+    "user_input": "What is the deadline for the backend API refactoring?",
+    "reference": "The backend API refactoring deadline was assigned to Rohan for Friday at 5 PM.",
+    "context": "Rahul discussed the sprint timeline. Rohan confirmed he will complete the backend API refactoring by Friday at 5 PM. Pooja will then take over the integration testing."
+  },
+  {
+    "user_input": "Who is responsible for the mobile app deployment?",
+    "reference": "Pooja is responsible for deploying the mobile app release build on Sunday.",
+    "context": "Amit asked about deployment schedules. Pooja agreed to handle the mobile app deployment to the production server on Sunday morning."
+  },
+  {
+    "user_input": "What was decided about the subscription pricing model?",
+    "reference": "The team agreed to introduce an early-bird tier at $29/month before switching to $49/month.",
+    "context": "Pricing strategy discussion: Neha suggested starting at $29/month for early adopters. The team reached consensus to launch with $29/month and transition to $49/month after Q3."
+  },
+  {
+    "user_input": "Which database was selected for user telemetry?",
+    "reference": "I could not find this information in the meeting transcript.",
+    "context": "The meeting focused exclusively on sprint velocity and frontend UI mockups. Databases or telemetry infrastructure were not mentioned."
+  }
+]
