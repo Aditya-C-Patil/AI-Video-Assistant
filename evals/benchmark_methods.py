@@ -6,11 +6,17 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-# Compatibility shim for Ragas internal LangChain imports
+# 1. Compatibility shim for Ragas VertexAI import
 if "langchain_community.chat_models.vertexai" not in sys.modules:
     dummy_module = types.ModuleType("langchain_community.chat_models.vertexai")
     dummy_module.ChatVertexAI = type("ChatVertexAI", (object,), {})
     sys.modules["langchain_community.chat_models.vertexai"] = dummy_module
+
+# 2. Compatibility shim for instructor mistralai.async_client import
+if "mistralai.async_client" not in sys.modules:
+    dummy_async = types.ModuleType("mistralai.async_client")
+    dummy_async.MistralAsyncClient = type("MistralAsyncClient", (object,), {})
+    sys.modules["mistralai.async_client"] = dummy_async
 
 import json
 import warnings
@@ -112,7 +118,6 @@ def run_full_suite():
     for name, func in methods.items():
         eval_result = evaluate_retriever_method(name, func, benchmarks, llm)
 
-        # Convert to dataframe to extract mean column scores
         df_res = eval_result.to_pandas()
 
         faith_val = (
