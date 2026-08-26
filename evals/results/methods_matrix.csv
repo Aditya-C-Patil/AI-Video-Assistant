@@ -1,0 +1,5 @@
+Method,Faithfulness,Context Recall,Context Precision
+Simple Chunking,1.0,1.0,1.0
+Semantic Chunking,1.0,1.0,1.0
+Hybrid Search,1.0,1.0,1.0
+Reranking (FlashRank),1.0,1.0,1.0
