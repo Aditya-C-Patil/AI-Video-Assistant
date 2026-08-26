@@ -1,7 +1,12 @@
-# ⚡ NEXUS AI // Intelligent Video Meeting Assistant & RAG Platform
+# ⚡ NEXUS AI // 🎙️ Video / Audio Meeting Intelligence & RAG System with CI/CD Eval Harness
 
 NEXUS AI is an intelligent video assistant that transforms raw video and audio streams into actionable intelligence. By combining **Groq LPU transcription (`whisper-large-v3`)**, **ChromaDB vector indexing**, and **Mistral AI reasoning**, it seamlessly translates Hindi/Hinglish audio into English, extracts key decisions and action items, and enables real-time, grounded RAG chat over long-form meeting recordings and YouTube videos.
 
+[![RAG Evaluation Suite CI](https://github.com/Aditya-C-Patil/AI-Video-Assistant/actions/workflows/rag_eval.yml/badge.svg)](https://github.com/Aditya-C-Patil/AI-Video-Assistant/actions/workflows/rag_eval.yml)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![Evaluation Framework](https://img.shields.io/badge/Eval-RAGAS-orange.svg)](https://docs.ragas.io/)
+[![Vector Store](https://img.shields.io/badge/VectorStore-ChromaDB-purple.svg)](https://www.trychroma.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ---
 
 ## 📑 Architectural Flow
