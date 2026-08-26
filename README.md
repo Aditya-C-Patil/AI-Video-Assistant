@@ -1,7 +1,5 @@
 # ⚡ NEXUS AI // 🎙️ Video / Audio Meeting Intelligence & RAG System with CI/CD Eval Harness
 
-NEXUS AI is an intelligent video assistant that transforms raw video and audio streams into actionable intelligence. By combining **Groq LPU transcription (`whisper-large-v3`)**, **ChromaDB vector indexing**, and **Mistral AI reasoning**, it seamlessly translates Hindi/Hinglish audio into English, extracts key decisions and action items, and enables real-time, grounded RAG chat over long-form meeting recordings and YouTube videos.
-
 [![RAG Evaluation Suite CI](https://github.com/Aditya-C-Patil/AI-Video-Assistant/actions/workflows/rag_eval.yml/badge.svg)](https://github.com/Aditya-C-Patil/AI-Video-Assistant/actions/workflows/rag_eval.yml)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Evaluation Framework](https://img.shields.io/badge/Eval-RAGAS-orange.svg)](https://docs.ragas.io/)
@@ -9,133 +7,227 @@ NEXUS AI is an intelligent video assistant that transforms raw video and audio s
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ---
 
-## 📑 Architectural Flow
+NEXUS AI is an end-to-end multimodal meeting intelligence and Retrieval-Augmented Generation (RAG) platform. The system ingests long-form video/audio files or YouTube URLs, automates chunked transcription and structured summarization, and enables context-grounded Q&A with dynamic source citation.
+
+Unlike basic RAG demonstrations, this repository implements a complete **Evaluation Harness & CI/CD Regression Pipeline** that systematically benchmarks 4 distinct retrieval architectures and blocks quality regressions on push using automated metric thresholds.
+
+---
+
+## 🏗️ System Architecture
 
 ```text
-    [ YouTube URL / Local MP4 / MP3 ]
-                  │
-                  ▼
-    [ utils/audio_processor.py ]
-                  │
-                  ├──► FFmpeg Normalization
-                  └──► 64k Audio Slicing
-                  │
-                  ▼
-    [ core/transcriber.py ]
-                  │
-                  └──► Groq LPU whisper-large-v3
-                       Speech → English Text
-                  │
-          ┌───────┴───────────────────────────┐
-          ▼                                   ▼
-[ core/vector_store.py ]        [ core/summarizer.py ]
-          │                     [ core/extractor.py ]
-          ▼                                   │
-   (ChromaDB Indexing)                        ▼
-                                      (Executive Brief,
-                                       Tasks, Decisions, Q&A)
-          │
-          └───────────────┬───────────────────┘
-                          ▼
-              [ core/rag_engine.py ]
-                          │
-                          ▼
-              (LangChain LCEL Pipeline
-                  + ChatMistralAI)
-                          │
-                          ▼
-              [ Streamlit Multi-Stage UI
-                       (app.py)
-                    / CLI (main.py) ]
+[ Video / Audio / YouTube ]
+              │
+              ▼
+┌───────────────────────────────────────────────┐
+│ 1. Ingestion, Preprocessing & Chunking        │
+│    - Format standardization (16kHz mono WAV)  │
+│    - Dynamic chunk slicing for API limits     │
+│    - Automated temp cleanup & storage bounds  │
+└──────────────────────┬────────────────────────┘
+                       │
+                       ▼
+┌───────────────────────────────────────────────┐
+│ 2. High-Fidelity Transcription                │
+│    - Groq Whisper-large-v3                    │
+│    - Sub-chunk timestamp & text alignment     │
+└──────────────────────┬────────────────────────┘
+                       │
+                       ▼
+┌───────────────────────────────────────────────┐
+│ 3. Intelligent Analysis & Vector Indexing     │
+│    - Executive summaries & action items       │
+│    - Dense Embeddings (all-MiniLM-L6-v2)      │
+│    - Dynamic ChromaDB Collections (by ID)     │
+└──────────────────────┬────────────────────────┘
+                       │
+                       ▼
+┌───────────────────────────────────────────────┐
+│ 4. Grounded RAG Generation & QA Interface     │
+│    - Anti-hallucination prompt constraints    │
+│    - Mistral Large / Groq Llama-3             │
+│    - Streamlit Dashboard & CLI Entry Point    │
+└───────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📂 Project Structure & Module Breakdown
+## 🔬 RAG Evaluation Harness & CI/CD Pipeline
+
+To ensure retrieval precision, hallucination prevention, and data-driven architectural selection, this project incorporates a **3-stage evaluation lifecycle**:
 
 ```text
-AI Video Assistant/
-│
-├── core/                           # Core AI and Retrieval Pipeline
-│   ├── extractor.py                # Extracts action items, key decisions, and open questions
-│   ├── rag_engine.py               # Assembles LCEL RAG chain and handles vector search QA
-│   ├── summarizer.py               # Generates session titles and executive summaries
-│   ├── transcriber.py              # Groq whisper-large-v3 speech-to-English translation
-│   └── vector_store.py             # Document chunking, HuggingFace embeddings, ChromaDB store
-│
-├── utils/                          # Audio Processing & Media Tools
-│   └── audio_processor.py          # yt-dlp download, FFmpeg slicing, and format conversions
-│
-├── app.py                          # Modern multi-stage Streamlit Web GUI
-├── main.py                         # Standalone CLI execution pipeline
-├── requirements.txt                # Pinned dependencies
-├── .env.example                    # Example to setup API keys & environment secrets
-└── .gitignore                      # Git exclusion rules
+┌───────────────────────────┐      ┌────────────────────────────┐      ┌───────────────────────────┐
+│  1. Ground-Truth Dataset  │  ──► │  2. Multi-Method Benchmark │  ──► │  3. GitHub Actions CI/CD  │
+│  - Golden Q&A Benchmarks  │      │  - Simple vs Semantic      │      │  - Automated Test Matrix  │
+│  - Reference Contexts     │      │  - Hybrid vs Reranking     │      │  - Quality Gate (>= 0.85) │
+└───────────────────────────┘      └────────────────────────────┘      └───────────────────────────┘
+```
+
+### 1. Ground-Truth Golden Dataset
+
+Structured evaluation sets (`evals/benchmark_data.json`) containing domain questions, target ground-truth answers, and reference context spans to measure extraction accuracy and retrieval precision.
+
+### 2. Multi-Paradigm Retrieval Benchmarking
+
+The harness evaluates four retrieval strategies against the golden dataset:
+
+1. **Simple Fixed Chunking:** Recursive character splitting (500 chars, 50 overlap) indexed in ChromaDB with dense vector search.
+2. **Semantic Chunking:** Dynamic boundary detection using percentile distance shifts across consecutive sentence embeddings.
+3. **Hybrid Search (Dense + Lexical BM25):** Combines dense vector similarity with sparse BM25 Okapi keyword scores using **Reciprocal Rank Fusion (RRF)**:
+
+$$
+\text{RRF Score}(d) = \sum_{m \in M} \frac{1}{60 + \text{Rank}_m(d)}
+$$
+
+4. **Contextual Reranking:** High-recall dense candidate retrieval ($k=8$) re-scored through a local cross-encoder (`FlashRank` / `TinyBERT`) to isolate the top 3 most relevant passages.
+
+### 3. Automated CI/CD Regression Testing
+
+Every push and pull request triggers a GitHub Actions runner (`.github/workflows/rag_eval.yml`) that executes the comparative evaluation matrix. If average **Faithfulness** drops below **0.85**, the CI job fails, preventing regressions from merging into production.
+
+#### Evaluation Benchmark Results
+
+```text
+════════════════════════════════════════════════════════════
+🏆 RAG ARCHITECTURE EVALUATION MATRIX
+════════════════════════════════════════════════════════════
+                Method  Faithfulness  Context Recall  Context Precision
+       Simple Chunking           1.0             1.0                1.0
+     Semantic Chunking           1.0             1.0                1.0
+         Hybrid Search           1.0             1.0                1.0
+ Reranking (FlashRank)           1.0             1.0                1.0
+
+✅ All RAG architectures passed minimum quality threshold (Faithfulness >= 0.85).
 ```
 
 ---
 
-## ⚡ Key Features
+## ✨ Engineering Highlights
 
-* **Zero-Compute Translation**
-  Translates Hindi and Hinglish speech directly into English text in a single inference call via Groq-hosted `whisper-large-v3`.
-
-* **Grounded LCEL RAG**
-  Strict meeting question answering powered by `ChatMistralAI`, preventing hallucinations by anchoring context exclusively to ChromaDB vector search results.
-
-* **Tactical Intelligence Extraction**
-  Automated extraction of structured executive summaries, prioritized action items, key decisions, and unresolved questions.
-
-* **Resilient Audio Pipeline**
-  Automated compression, 64k bitrate export, and payload chunking to prevent API timeout and size-limit errors.
-
-* **Multi-Stage Cyberpunk GUI**
-  A Streamlit interface equipped with automated `.env` verification, progress telemetry, structured metric HUDs, and interactive vector chat.
+* **Multi-Source Ingestion:** Native handling of local media (`.mp4`, `.mov`, `.mp3`, `.wav`, `.m4a`) and direct YouTube audio extraction via `yt-dlp`.
+* **Chunked Audio Pipeline & Resource Management:** Chunks audio into standardized segments via `pydub`/`ffmpeg` to respect upstream API limits, with automated post-processing disk cleanup utilities.
+* **Meeting-Isolated Vector Indexes:** ChromaDB collections are dynamically isolated by unique `meeting_id` to prevent cross-session context bleeding and vector leakage.
+* **Hallucination Guardrails:** RAG prompt templates strictly constrain responses to retrieved chunks, refusing out-of-context queries deterministically.
+* **Cloud CI/CD Execution:** Optimized PyTorch CPU caching and environment shims for reliable, fast execution on GitHub Actions runners.
 
 ---
 
-## 🛠️ Quickstart & Prerequisites
+## 🛠️ Tech Stack
 
-### 1. System Dependency
+| **Component**              | **Technology**                                              |
+| -------------------------- | ----------------------------------------------------------- |
+| **LLMs & Generation**      | Mistral Large (`mistral-large-latest`), Groq Llama-3        |
+| **Speech-to-Text**         | Groq Whisper-large-v3                                       |
+| **Vector DB & Storage**    | ChromaDB (Collection-partitioned)                           |
+| **Embeddings & Reranking** | HuggingFace `all-MiniLM-L6-v2`, BM25 Okapi, FlashRank       |
+| **Orchestration**          | LangChain Core, LangChain Community, LangChain Experimental |
+| **Evaluation Suite**       | Ragas, HuggingFace Datasets, Pandas, NumPy                  |
+| **Audio Processing**       | FFmpeg, PyDub, yt-dlp                                       |
+| **Interface & CLI**        | Streamlit, CLI entry point (`main.py`)                      |
+| **CI/CD**                  | GitHub Actions (Ubuntu x86_64, CPU Wheel Optimization)      |
 
-**FFmpeg** — Ensure FFmpeg is installed and registered in your system environment `PATH`.
+---
 
-### 2. Installation & Virtual Environment Setup
+## 📁 Repository Structure
+
+```text
+├── .github/
+│   └── workflows/
+│       └── rag_eval.yml            # Automated CI/CD RAG evaluation workflow
+├── core/
+│   ├── audio_processor.py          # YouTube download, audio conversion, and slicing
+│   ├── transcriber.py              # Whisper API client and chunked transcription
+│   ├── meeting_analyzer.py         # Structured summary & action item generation
+│   ├── vector_store.py             # Isolated ChromaDB vector indexing and retrieval
+│   └── rag_engine.py               # LLM integration, prompt templates, and QA logic
+├── evals/
+│   ├── benchmark_data.json         # Golden evaluation benchmark dataset
+│   ├── retrieval_strategies.py     # Implementations of Simple, Semantic, Hybrid, and Reranked RAG
+│   ├── evaluate_rag.py             # Standalone single-pipeline evaluation script
+│   ├── benchmark_methods.py        # Comparative matrix runner and threshold gate
+│   └── results/                    # Evaluation artifacts and exported CSV scores
+├── utils/
+│   └── audio_cleanup.py            # Temporary file deletion and cleanup utilities
+├── app.py                          # Streamlit interactive web dashboard
+├── main.py                         # CLI entry point for full pipeline execution
+├── .env.example                    # Template for required environment variables
+├── requirements.txt                # Pinned Python package dependencies
+├── LICENSE                         # Project license
+└── README.md                       # Documentation
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/Aditya-C-Patil/AI-Video-Assistant.git
 cd AI-Video-Assistant
+```
 
-# Create and activate virtual environment
+### 2. Set Up Virtual Environment
+
+```bash
 python -m venv .venv
 
-# Windows (PowerShell)
+# Windows
 .venv\Scripts\activate
 
-# macOS / Linux
+# Linux/macOS
 source .venv/bin/activate
+```
 
-# Install project dependencies
+### 3. Install Dependencies
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables Configuration
+### 4. Configure Environment Variables
 
-Create a `.env` file in the root directory.
+Copy the template and provide your API keys:
 
----
+```bash
+cp .env.example .env
+```
 
-## 🚀 Running the Application
+Inside `.env`:
 
-### Option A — Launch the Streamlit Web Application
+```env
+GROQ_API_KEY=your_groq_api_key_here
+MISTRAL_API_KEY=your_mistral_api_key_here
+```
+
+### 5. Run the Application
+
+**Interactive UI:**
 
 ```bash
 streamlit run app.py
 ```
 
-### Option B — Run the CLI Pipeline
+**Command Line Pipeline:**
 
 ```bash
-python -u main.py
+python main.py
+```
+
+---
+
+## 🧪 Running the Evaluation Suite
+
+**Run the 4-Method Comparison Matrix & CI Quality Gate:**
+
+```bash
+python evals/benchmark_methods.py
+```
+
+**Run Single-Pipeline RAG Evaluation:**
+
+```bash
+python evals/evaluate_rag.py
 ```
