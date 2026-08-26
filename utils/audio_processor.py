@@ -4,10 +4,21 @@ import tempfile
 from typing import List
 import yt_dlp
 from pydub import AudioSegment
+import shutil
 
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+def cleanup_audio_chunks(chunks_dir: str = "downloads"):
+    """Removes all intermediate audio chunk files after transcription."""
+    if os.path.exists(chunks_dir):
+        for filename in os.listdir(chunks_dir):
+            file_path = os.path.join(chunks_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except OSError as e:
+                print(f"Error deleting {file_path}: {e}")
 
 def download_youtube_audio(url: str) -> str:
     """Downloads YouTube audio and normalizes it to 16kHz mono WAV."""
