@@ -6,11 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Patterns that Whisper creates when listening to music, silence, or noise
-HALLUCINATION_PATTERNS = [
-    r"\b(thank\s+you|thanks\s+for\s+watching|subtitles\s+by|please\s+subscribe|subscribe)\b",
-    r"\b(music|applause|cheering|laughter)\b",
-    r"\b(the|ah|um|uh|you)\b",
+# Phrases Whisper emits on pure background noise or end credits
+HALLUCINATION_EXACT_MATCHES = [
+    "thank you for watching",
+    "thanks for watching",
+    "subtitles by",
+    "subscribe to the channel",
+    "please subscribe",
 ]
 
 
@@ -22,26 +24,38 @@ def get_groq_client():
 
 
 def is_hallucinated_noise(text: str) -> bool:
-    """Detects whether a transcript chunk is just looped filler words or music artifacts."""
+    """Detects whether a transcript chunk is empty, purely music/applause tags,
+
+    or stuck in a repetitive token loop.
+    """
     cleaned = text.lower().strip()
-    if not cleaned or len(cleaned) < 6:
+    if not cleaned or len(cleaned) < 5:
         return True
 
-    words = re.findall(r"\b[a-zA-Z]+\b", cleaned)
+    # Strip bracketed audio metadata like [Music], (Applause), [Silence]
+    stripped_metadata = re.sub(
+        r"\[(music|applause|cheering|laughter|silence)\]|\((music|applause|cheering|laughter|silence)\)",
+        "",
+        cleaned,
+    ).strip()
+    if not stripped_metadata:
+        return True
+
+    # Check for exact subtitle/end-card hallucination phrases
+    if any(cleaned == phrase for phrase in HALLUCINATION_EXACT_MATCHES):
+        return True
+
+    words = re.findall(r"\b[a-zA-Z0-9]+\b", cleaned)
     if not words:
         return True
 
-    unique_words = set(words)
-    diversity_ratio = len(unique_words) / len(words)
-    if len(words) > 4 and diversity_ratio < 0.35:
-        return True
+    # Catch severe token loops (e.g., repeating the exact same word 20+ times)
+    if len(words) > 15:
+        diversity_ratio = len(set(words)) / len(words)
+        if diversity_ratio < 0.12:
+            return True
 
-    stripped_text = cleaned
-    for pattern in HALLUCINATION_PATTERNS:
-        stripped_text = re.sub(pattern, "", stripped_text, flags=re.IGNORECASE)
-    stripped_text = re.sub(r"[^\w\s]", "", stripped_text).strip()
-
-    return len(stripped_text) < 4
+    return False
 
 
 def transcribe_to_english(audio_path: str) -> str:
