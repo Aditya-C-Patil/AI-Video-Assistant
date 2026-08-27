@@ -19,21 +19,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
 
       - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Install Lightweight PyTorch (CPU)
+      - name: Install Python Dependencies (Optimized CPU Wheels)
         run: |
           python -m pip install --upgrade pip
-          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Install Python Dependencies
-        run: |
-          pip install -r requirements.txt
+          pip install --no-cache-dir torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir -r requirements.txt
 
       - name: Run RAG Evaluation Benchmark
         env:
