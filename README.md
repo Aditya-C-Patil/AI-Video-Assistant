@@ -141,6 +141,10 @@ Every push and pull request triggers a GitHub Actions runner (`.github/workflows
 │   ├── meeting_analyzer.py         # Structured summary & action item generation
 │   ├── vector_store.py             # Isolated ChromaDB vector indexing and retrieval
 │   └── rag_engine.py               # LLM integration, prompt templates, and QA logic
+│
+├── docs/
+│   └── DECISIONS.md                # List of all Architectural & Engineering Decisions made
+│ 
 ├── evals/
 │   ├── benchmark_data.json         # Golden evaluation benchmark dataset
 │   ├── retrieval_strategies.py     # Implementations of Simple, Semantic, Hybrid, and Reranked RAG
