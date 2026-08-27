@@ -9,6 +9,7 @@ on:
 jobs:
   rag-evaluation:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Code
@@ -18,20 +19,71 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: 'pip'
 
       - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Install Python Dependencies
+      - name: Install Lightweight PyTorch (CPU)
         run: |
           python -m pip install --upgrade pip
-          pip install streamlit python-dotenv groq yt-dlp pydub langchain-mistralai langchain-chroma langchain-community langchain-text-splitters langchain-experimental sentence-transformers chromadb ragas datasets pandas numpy rank_bm25 flashrank
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install Python Dependencies
+        run: |
+          pip install -r requirements.txt
 
       - name: Run RAG Evaluation Benchmark
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          TOKENIZERS_PARALLELISM: "false"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python evals/benchmark_methods.pyname: RAG Evaluation Suite CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  rag-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Lightweight PyTorch (CPU)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install Python Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run RAG Evaluation Benchmark
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          TOKENIZERS_PARALLELISM: "false"
+          PYTHONUNBUFFERED: "1"
         run: |
           python evals/benchmark_methods.py
