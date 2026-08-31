@@ -168,8 +168,8 @@ Every push and pull request triggers a GitHub Actions runner (`.github/workflows
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Aditya-C-Patil/AI-Video-Assistant.git
-cd AI-Video-Assistant
+git clone https://github.com/Aditya-C-Patil/Enterprise-Meeting-Intelligence.git
+cd Enterprise-Meeting-Intelligence
 ```
 
 ### 2. Set Up Virtual Environment
